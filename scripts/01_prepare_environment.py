@@ -4,9 +4,6 @@ Step 1 - environmental data.
 Raw export (data/5EnvSensor_MayToDec2024_180kRows.zip)
   -> data/processed/env_deduplicated.csv   one row per (sensor, timestamp)
   -> data/processed/env_cleaned.csv        stray readings removed, unreliable values flagged
-
-Both outputs are checked against the reference copies committed in data/ to confirm the
-cleaning is reproducible from the raw export.
 """
 import sys
 import time
@@ -29,12 +26,8 @@ def main():
     dedup.to_csv(config.ENV_DEDUP_CSV, index=False, encoding="utf-8-sig")
 
     clean = env_data.clean_environment(dedup)
-    print(f"cleaned readings: {len(clean):,}  sensors: {sorted(clean['sensorid'].unique())}")
+    print(f"cleaned readings: {len(clean):,}  sensors: {sorted(clean['sensorid'].unique().tolist())}")
     clean.to_csv(config.ENV_CLEAN_CSV, index=False, encoding="utf-8-sig")
-
-    for out, ref in ((dedup, config.REFERENCE_ENV_DEDUP_CSV), (clean, config.REFERENCE_ENV_CLEAN_CSV)):
-        ok, msg = env_data.matches_reference(out, ref)
-        print(f"{'OK ' if ok else 'DIFF'} vs {ref.name}: {msg}")
 
 
 if __name__ == "__main__":

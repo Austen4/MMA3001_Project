@@ -13,6 +13,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 STEPS = {
+    "0": "00_prepare_locations.py",
     "1": "01_prepare_environment.py",
     "2": "02_prepare_occupancy.py",
     "3": "03_build_datasets.py",

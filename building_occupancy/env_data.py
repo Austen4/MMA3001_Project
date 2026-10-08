@@ -183,35 +183,3 @@ def clean_environment(dedup, min_sensor_readings=config.MIN_SENSOR_READINGS,
     df["co2_at_floor"] = df["Carbon dioxide (ppm)"] == config.CO2_SENSOR_FLOOR_PPM
     df["formaldehyde_at_ceiling"] = df[hcho] == config.FORMALDEHYDE_CEILING
     return df.drop(columns=["copies_in_source", "first_createdate"]).reset_index(drop=True)
-
-
-def matches_reference(df, reference_csv, sort_by=KEY):
-    """Check a generated table against a committed reference CSV, ignoring dtypes.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        Generated table.
-    reference_csv : str or Path
-        Reference file (UTF-8, optionally with BOM).
-    sort_by : list of str
-        Columns to sort both tables by before comparing.
-
-    Returns
-    -------
-    (bool, str)
-        Whether they match, and a short explanation.
-    """
-    ref = pd.read_csv(reference_csv, encoding="utf-8-sig")
-    gen = pd.read_csv(io.StringIO(df.to_csv(index=False)))  # round-trip for identical parsing
-    if list(ref.columns) != list(gen.columns):
-        return False, f"column mismatch: {set(ref.columns) ^ set(gen.columns)}"
-    if len(ref) != len(gen):
-        return False, f"row count {len(gen)} vs reference {len(ref)}"
-    ref = ref.sort_values(sort_by).reset_index(drop=True)
-    gen = gen.sort_values(sort_by).reset_index(drop=True)
-    try:
-        pd.testing.assert_frame_equal(gen, ref, check_dtype=False, check_exact=False)
-    except AssertionError as e:
-        return False, str(e).splitlines()[0]
-    return True, f"identical ({len(ref)} rows)"

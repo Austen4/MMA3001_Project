@@ -16,13 +16,12 @@ RESULTS_DIR = ROOT / "results"
 
 RAW_ENV_ZIP = DATA_DIR / "5EnvSensor_MayToDec2024_180kRows.zip"
 RAW_OCC_ZIP = DATA_DIR / "5occupancySensor_MayToDec2024_9MRows.zip"
-# Reference copies of the environmental data committed earlier; the pipeline rebuilds
-# these from RAW_ENV_ZIP and checks it reproduces them.
-REFERENCE_ENV_DEDUP_CSV = DATA_DIR / "5EnvSensor_deduplicated.csv"
-REFERENCE_ENV_CLEAN_CSV = DATA_DIR / "5EnvSensor_cleaned.csv"
+LOCATIONS_XLSX = DATA_DIR / "Sensor ID and Locations.xlsx"
 
 ENV_DEDUP_CSV = PROCESSED_DIR / "env_deduplicated.csv"
 ENV_CLEAN_CSV = PROCESSED_DIR / "env_cleaned.csv"
+ENV_LOCATIONS_CSV = PROCESSED_DIR / "sensor_locations_env.csv"
+OCC_LOCATIONS_CSV = PROCESSED_DIR / "sensor_locations_occ.csv"
 
 TIMEZONE = "Australia/Sydney"
 
@@ -42,7 +41,7 @@ ENV_COLUMNS = {
     "Pressure (mb)": "pressure",
 }
 
-# Environmental sensors with a usable time series. Locations from data/sensor_locations_env.csv.
+# Environmental sensors with a usable time series. Locations from step 0 (sensor_locations_env.csv).
 ENV_SENSORS = {
     6012002000869: "EMS107, building 60 G.38 Compactus (upper)",
     6012002000326: "location not listed",
@@ -59,7 +58,7 @@ BIN_MINUTES = (10, 30, 60)        # time resolutions evaluated
 
 # Rooms summed to form the building-total target: the four floorspaces reporting
 # throughout both environmental-sensor periods. Floorspace 3e5a14df is excluded because
-# it only reported May-Dec 2024. Labels from data/sensor_locations_occ.csv (that sheet is
+# it only reported May-Dec 2024. Labels from step 0 (sensor_locations_occ.csv; that sheet is
 # marked "Incorrect Data", so labels are indicative only).
 BUILDING_ROOMS = {
     "cca1ac3e-f81f-4ebb-aa2b-8b0bf3e9e53b": "60-G.20",

@@ -21,14 +21,20 @@ Machine learning
 ----------------
 :class:`RidgeRegression` is L2-regularised linear regression on all environmental features,
 with the penalty chosen by time-ordered cross-validation (scikit-learn).
+
+:class:`PolynomialRidgeRegression` extends it to polynomial features of degree 1-4. Because
+the number of terms grows combinatorially, it computes the whole regularisation path from a
+single SVD per fold (:func:`ridge_path_svd`) instead of refitting for every penalty.
 """
+from math import comb
+
 import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import Ridge
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import PolynomialFeatures, StandardScaler
 
 from . import config
 
@@ -158,6 +164,59 @@ def solve_lstsq_normal(X, y):
     X, y = _check_design(X, y)
     L = np.linalg.cholesky(X.T @ X)
     return back_substitution(L.T, forward_substitution(L, X.T @ y))
+
+
+def ridge_path_svd(X, y, alphas):
+    """Ridge coefficients for many penalties from a single thin SVD.
+
+    With ``X = U S V^T``, the ridge solution for penalty ``alpha`` is
+    ``beta = V diag(s / (s^2 + alpha)) U^T y``. One SVD (~``6 m n^2 + 20 n^3`` flops,
+    Golub & Van Loan, *Matrix Computations*, 4th ed., sec. 8.6) therefore gives every
+    penalty, instead of one factorisation per penalty. Working from the SVD of ``X``
+    rather than ``X^T X`` also avoids squaring the condition number.
+
+    ``X`` and ``y`` should be centred; no intercept is fitted.
+
+    Parameters
+    ----------
+    X : (m, n) array_like
+        Design matrix (any shape; ``n > m`` is allowed).
+    y : (m,) array_like
+        Observations.
+    alphas : array_like
+        Penalties, all > 0.
+
+    Returns
+    -------
+    numpy.ndarray
+        Coefficients, shape ``(n, len(alphas))``.
+    """
+    X, y = np.asarray(X, float), np.asarray(y, float)
+    alphas = np.atleast_1d(np.asarray(alphas, float))
+    if X.ndim != 2 or y.ndim != 1 or X.shape[0] != y.shape[0]:
+        raise ValueError(f"incompatible shapes X{X.shape}, y{y.shape}")
+    if np.any(alphas <= 0):
+        raise ValueError("ridge penalties must be positive")
+    if not (np.isfinite(X).all() and np.isfinite(y).all()):
+        raise ValueError("X and y must not contain NaN or inf")
+    U, s, Vt = np.linalg.svd(X, full_matrices=False)
+    shrink = s[:, None] / (s[:, None] ** 2 + alphas[None, :])   # (k, n_alphas)
+    return Vt.T @ (shrink * (U.T @ y)[:, None])
+
+
+def n_polynomial_terms(n_features, degree):
+    """Number of polynomial terms of degree 1..``degree`` in ``n_features`` variables.
+
+    Parameters
+    ----------
+    n_features, degree : int
+
+    Returns
+    -------
+    int
+        ``C(n_features + degree, degree) - 1`` (all monomials except the constant).
+    """
+    return comb(n_features + degree, degree) - 1
 
 
 def _check_design(X, y):
@@ -390,6 +449,125 @@ class RidgeRegression:
     def predict(self, df):
         """Ridge prediction, clipped at zero."""
         return np.clip(self.model_.predict(self._design(df)), 0, None)
+
+
+class _PolynomialDesign:
+    """Training-set preprocessing for polynomial ridge: impute, scale, expand, scale.
+
+    Inputs are standardised *before* expansion so powers of large raw values (CO2 ~ 450 ppm)
+    do not make the design matrix ill-conditioned, and the expanded terms are standardised
+    again so the ridge penalty treats every term equally. All statistics come from the
+    training rows only.
+    """
+
+    def __init__(self, degree):
+        self.degree = degree
+
+    def fit_transform(self, raw):
+        """Learn preprocessing from ``raw`` (n x features array) and return the design."""
+        self.median_ = np.nanmedian(raw, axis=0)
+        filled = np.where(np.isnan(raw), self.median_, raw)
+        self.mean_, self.std_ = filled.mean(axis=0), _safe_std(filled)
+        self.poly_ = PolynomialFeatures(self.degree, include_bias=False)
+        expanded = self.poly_.fit_transform((filled - self.mean_) / self.std_)
+        self.emean_, self.estd_ = expanded.mean(axis=0), _safe_std(expanded)
+        return (expanded - self.emean_) / self.estd_
+
+    def transform(self, raw):
+        """Apply the learned preprocessing to new rows."""
+        filled = np.where(np.isnan(raw), self.median_, raw)
+        expanded = self.poly_.transform((filled - self.mean_) / self.std_)
+        return (expanded - self.emean_) / self.estd_
+
+
+def _safe_std(a):
+    """Column standard deviations with zeros replaced by 1 (constant columns)."""
+    s = a.std(axis=0)
+    return np.where(s > 0, s, 1.0)
+
+
+class PolynomialRidgeRegression:
+    """Ridge regression on polynomial expansions of the environmental features.
+
+    Degree and penalty are chosen jointly by time-ordered cross-validation on the
+    training data (minimum mean absolute error), using :func:`ridge_path_svd` so each
+    candidate degree needs one SVD per fold regardless of how many penalties are tried.
+
+    Parameters
+    ----------
+    degrees : int or sequence of int
+        Candidate polynomial degrees (an int fixes the degree).
+    features : list of str
+        Environmental feature columns (NaN allowed; median-imputed).
+    alphas : array_like
+        Candidate penalties (> 0).
+    inner_splits : int
+        Number of :class:`~sklearn.model_selection.TimeSeriesSplit` folds.
+    name : str, optional
+        Display name.
+
+    Attributes
+    ----------
+    degree_, alpha_ : int, float
+        Selected degree and penalty.
+    n_terms_ : int
+        Number of polynomial terms in the fitted model.
+    cv_mae_ : pandas.DataFrame
+        Inner-CV mean absolute error for every (degree, alpha).
+    coef_ : pandas.Series
+        Coefficients on the standardised polynomial terms.
+    """
+
+    def __init__(self, degrees=config.POLY_DEGREES, features=ENV_FEATURES, alphas=config.RIDGE_ALPHAS,
+                 inner_splits=config.RIDGE_INNER_SPLITS, name=None):
+        self.degrees = (degrees,) if np.isscalar(degrees) else tuple(degrees)
+        if not self.degrees or any(int(d) != d or d < 1 for d in self.degrees):
+            raise ValueError("degrees must be positive integers")
+        self.features = list(features)
+        self.alphas = np.asarray(alphas, float)
+        self.inner_splits = inner_splits
+        if name is None:
+            name = (f"Polynomial ridge (degree {self.degrees[0]})" if len(self.degrees) == 1
+                    else "Polynomial ridge (degree selected by CV)")
+        self.name = name
+
+    def _raw(self, df):
+        missing = set(self.features) - set(df.columns)
+        if missing:
+            raise ValueError(f"dataset is missing features: {sorted(missing)}")
+        return df[self.features].to_numpy(float)
+
+    def fit(self, df, y):
+        """Select degree and penalty by inner CV, then refit on all of ``df``. Returns ``self``."""
+        raw, y = self._raw(df), np.asarray(y, float)
+        rows = []
+        for degree in self.degrees:
+            fold_mae = []
+            for tr, va in TimeSeriesSplit(n_splits=self.inner_splits).split(raw):
+                design = _PolynomialDesign(degree)
+                X_tr = design.fit_transform(raw[tr])
+                y_mean = y[tr].mean()
+                B = ridge_path_svd(X_tr, y[tr] - y_mean, self.alphas)
+                pred = np.clip(design.transform(raw[va]) @ B + y_mean, 0, None)
+                fold_mae.append(np.abs(pred - y[va][:, None]).mean(axis=0))
+            rows += [{"degree": degree, "alpha": a, "mae": m}
+                     for a, m in zip(self.alphas, np.mean(fold_mae, axis=0))]
+        self.cv_mae_ = pd.DataFrame(rows)
+        best = self.cv_mae_.loc[self.cv_mae_["mae"].idxmin()]
+        self.degree_, self.alpha_ = int(best["degree"]), float(best["alpha"])
+
+        self.design_ = _PolynomialDesign(self.degree_)
+        X = self.design_.fit_transform(raw)
+        self.y_mean_ = y.mean()
+        beta = ridge_path_svd(X, y - self.y_mean_, [self.alpha_])[:, 0]
+        self.n_terms_ = X.shape[1]
+        self.coef_ = pd.Series(beta, index=self.design_.poly_.get_feature_names_out(self.features))
+        return self
+
+    def predict(self, df):
+        """Polynomial ridge prediction, clipped at zero."""
+        X = self.design_.transform(self._raw(df))
+        return np.clip(X @ self.coef_.to_numpy() + self.y_mean_, 0, None)
 
 
 def default_models():

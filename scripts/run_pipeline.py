@@ -18,6 +18,7 @@ STEPS = {
     "2": "02_prepare_occupancy.py",
     "3": "03_build_datasets.py",
     "4": "04_train_linear_models.py",
+    "5": "05_polynomial_ridge.py",
 }
 
 

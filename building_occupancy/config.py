@@ -72,8 +72,12 @@ TARGET = "building_headcount"
 TEST_FRACTION = 0.25      # last 25% of each dataset (chronologically) is held out
 CV_FOLDS = 5              # rolling-origin folds over the full dataset
 CV_MIN_TRAIN_FRACTION = 0.4
-RIDGE_ALPHAS = np.logspace(-3, 4, 15)
+# Ridge penalties searched. Extended down to 1e-6 after the linear ridge model selected
+# the previous lower limit (1e-3) for every dataset, i.e. the optimum was off the grid.
+RIDGE_ALPHAS = np.logspace(-6, 4, 21)
 RIDGE_INNER_SPLITS = 5    # time-series splits used to choose the ridge penalty
+
+POLY_DEGREES = (1, 2, 3, 4)   # polynomial degrees compared (degree 1 = linear ridge)
 
 # CO2 generated per seated adult office worker (~1.2 met): 0.0052 L/s = 0.0187 m3/h
 # (Persily & de Jonge, 2017, Indoor Air 27(5)). Used only to interpret mass-balance

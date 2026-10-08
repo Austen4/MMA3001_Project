@@ -1,5 +1,7 @@
 pandas>=2.2
 numpy
 statsmodels>=0.14
+scikit-learn>=1.4
 matplotlib
 tzdata
+pytest>=8

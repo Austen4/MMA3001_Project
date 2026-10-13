@@ -79,6 +79,27 @@ RIDGE_INNER_SPLITS = 5    # time-series splits used to choose the ridge penalty
 
 POLY_DEGREES = (1, 2, 3, 4)   # polynomial degrees compared (degree 1 = linear ridge)
 
+# ------------------------------------------------------------------ final models
+# Selected after steps 4-5: the only sensor whose readings carry occupancy information,
+# at the resolution where both final models scored best on the hold-out.
+FINAL_SENSOR = 6012002000869
+FINAL_BIN_MINUTES = 60
+MODELS_DIR = ROOT / "models"
+FINAL_MODEL_FILE = MODELS_DIR / "final_models.joblib"
+FINAL_MODEL_CARD = MODELS_DIR / "final_models.json"
+
+# Accepted input variables for prediction: short name -> (export column name, unit,
+# physically plausible range). Values outside the range are treated as sensor faults.
+PREDICTION_INPUTS = {
+    "co2": ("Carbon dioxide (ppm)", "ppm", (300.0, 5000.0)),
+    "temp": ("Temperature (°C)", "degC", (-20.0, 60.0)),
+    "rh": ("Humidity (HR%)", "%RH", (0.0, 100.0)),
+    "voc": ("Light Volatile Organic Compounds (ppb)", "ppb", (0.0, 10000.0)),
+    "pm25": ("Particulate matter 2.5 (µg/m3)", "ug/m3", (0.0, 1000.0)),
+    "pressure": ("Pressure (mb)", "mb", (800.0, 1100.0)),
+}
+REQUIRED_PREDICTION_INPUTS = ("co2",)   # others are imputed (with a warning) if absent
+
 # CO2 generated per seated adult office worker (~1.2 met): 0.0052 L/s = 0.0187 m3/h
 # (Persily & de Jonge, 2017, Indoor Air 27(5)). Used only to interpret mass-balance
 # coefficients physically.

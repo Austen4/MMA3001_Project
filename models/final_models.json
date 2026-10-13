@@ -1,0 +1,74 @@
+{
+  "target": "building_headcount: mean people per 60-min bin, summed over rooms ['60-G.20', '60-G.25', 'unmapped 0f3f37f8', 'unmapped 941f0352']",
+  "sensor": 6012002000869,
+  "sensor_location": "EMS107, building 60 G.38 Compactus (upper)",
+  "bin_minutes": 60,
+  "training_period_utc": [
+    "2024-03-03 04:00:00+00:00",
+    "2024-06-13 17:00:00+00:00"
+  ],
+  "n_training_rows": 2459,
+  "holdout": {
+    "from_utc": "2024-05-19 02:00:00+00:00",
+    "n_rows": 615,
+    "note": "metrics from models trained on the earlier rows only"
+  },
+  "models": {
+    "ridge_env_time": {
+      "name": "Ridge (environment + time)",
+      "alpha": 31.622776601683793,
+      "degree": 1,
+      "n_coefficients": 18,
+      "holdout_metrics": {
+        "mae": 1.6235,
+        "rmse": 2.3078,
+        "bias": 1.1929,
+        "r2": 0.3525
+      }
+    },
+    "poly2": {
+      "name": "Polynomial ridge (degree 2)",
+      "alpha": 100.0,
+      "degree": 2,
+      "n_coefficients": 54,
+      "holdout_metrics": {
+        "mae": 1.4715,
+        "rmse": 2.2753,
+        "bias": 0.6684,
+        "r2": 0.3706
+      }
+    }
+  },
+  "input_ranges_in_training": {
+    "co2": [
+      421.25,
+      627.0
+    ],
+    "dco2_dt": [
+      -85.25,
+      80.16666666666669
+    ],
+    "temp": [
+      19.23333333333333,
+      28.5
+    ],
+    "rh": [
+      26.0,
+      74.8
+    ],
+    "voc": [
+      0.0,
+      474.0
+    ],
+    "pm25": [
+      0.2,
+      70.8
+    ]
+  },
+  "versions": {
+    "python": "3.12.4",
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1"
+  }
+}

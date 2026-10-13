@@ -54,10 +54,10 @@ def prediction_table(test, predictions):
     return out
 
 
-def plot_test_period(test, predictions, path, title, days=14):
+def plot_test_period(test, predictions, path, title, days=14, metric_label="hold-out"):
     """Observed vs predicted target over the first ``days`` of the hold-out, one panel per model.
 
-    Each panel title carries the model's MAE and R² over the *whole* hold-out, so the
+    Each panel title carries the model's MAE and R² over *all* rows of ``test``, so the
     plotted window is illustrative and the numbers are the evaluation. All panels share a
     y-axis capped at 1.15 x the observed maximum in the window; predictions above the cap
     are labelled with their value so one extreme model does not flatten the others.
@@ -75,6 +75,9 @@ def plot_test_period(test, predictions, path, title, days=14):
         Figure caption.
     days : float
         Length of the plotted window.
+    metric_label : str
+        What the rows in ``test`` are, shown before the metrics in each panel title
+        (e.g. ``"in-sample"`` when the rows were used for training).
     """
     if not predictions:
         raise ValueError("no predictions to plot")
@@ -95,7 +98,7 @@ def plot_test_period(test, predictions, path, title, days=14):
             i = run[np.argmax(shown[run])]       # label each off-scale excursion once, at its peak
             ax.annotate(f"{shown[i]:.0f}", (t.iloc[i], top), textcoords="offset points", xytext=(4, -10),
                         fontsize=8, color=INK)
-        ax.set_title(f"{name}  ·  hold-out MAE {m['mae']:.2f}, R² {m['r2']:.2f}",
+        ax.set_title(f"{name}  ·  {metric_label} MAE {m['mae']:.2f}, R² {m['r2']:.2f}",
                      loc="left", fontsize=10, color=INK, fontweight="bold")
     axes[0, 0].set_ylim(0, top)
     last = axes[-1, 0]

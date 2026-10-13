@@ -3,6 +3,8 @@ name = "building-occupancy"
 version = "0.2.0"
 description = "Estimating building occupancy from indoor environmental sensor data (MMA3001 project)"
 requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

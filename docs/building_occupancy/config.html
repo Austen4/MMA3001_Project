@@ -142,6 +142,24 @@
                     <a class="variable" href="#REQUIRED_PREDICTION_INPUTS">REQUIRED_PREDICTION_INPUTS</a>
             </li>
             <li>
+                    <a class="variable" href="#SENS_HOLD_NOT_OCCUPIED_H">SENS_HOLD_NOT_OCCUPIED_H</a>
+            </li>
+            <li>
+                    <a class="variable" href="#SENS_HOLD_OCCUPIED_H">SENS_HOLD_OCCUPIED_H</a>
+            </li>
+            <li>
+                    <a class="variable" href="#SENS_MIN_COVERAGE">SENS_MIN_COVERAGE</a>
+            </li>
+            <li>
+                    <a class="variable" href="#SENS_TEST_FRACTION">SENS_TEST_FRACTION</a>
+            </li>
+            <li>
+                    <a class="variable" href="#SENS_TRAIN_DAYS">SENS_TRAIN_DAYS</a>
+            </li>
+            <li>
+                    <a class="variable" href="#SENS_FIXED_ALPHAS">SENS_FIXED_ALPHAS</a>
+            </li>
+            <li>
                     <a class="variable" href="#CO2_GENERATION_M3_PER_H">CO2_GENERATION_M3_PER_H</a>
             </li>
     </ul>
@@ -273,10 +291,21 @@ sensitivity of results to each setting can be tested by changing a single value.
 </span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a><span class="p">}</span>
 </span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="n">REQUIRED_PREDICTION_INPUTS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"co2"</span><span class="p">,)</span>   <span class="c1"># others are imputed (with a warning) if absent</span>
 </span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="c1"># CO2 generated per seated adult office worker (~1.2 met): 0.0052 L/s = 0.0187 m3/h</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="c1"># (Persily &amp; de Jonge, 2017, Indoor Air 27(5)). Used only to interpret mass-balance</span>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="c1"># coefficients physically.</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="n">CO2_GENERATION_M3_PER_H</span> <span class="o">=</span> <span class="mf">0.0187</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="c1"># ------------------------------------------------------------------ sensitivity analysis</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="c1"># One-at-a-time: each setting is varied from its baseline value above while all others are</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="c1"># held at baseline (sensor FINAL_SENSOR, FINAL_BIN_MINUTES bins). Bin width, polynomial</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="c1"># degree and the ridge penalty grid are covered by steps 4-5.</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="n">SENS_HOLD_NOT_OCCUPIED_H</span> <span class="o">=</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">72</span><span class="p">,</span> <span class="mi">168</span><span class="p">)</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="n">SENS_HOLD_OCCUPIED_H</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="n">SENS_MIN_COVERAGE</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a><span class="n">SENS_TEST_FRACTION</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.35</span><span class="p">)</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a><span class="n">SENS_TRAIN_DAYS</span> <span class="o">=</span> <span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">42</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>    <span class="c1"># most recent N days before the hold-out; None = all</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="n">SENS_FIXED_ALPHAS</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">6</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">11</span><span class="p">)</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="c1"># CO2 generated per seated adult office worker (~1.2 met): 0.0052 L/s = 0.0187 m3/h</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="c1"># (Persily &amp; de Jonge, 2017, Indoor Air 27(5)). Used only to interpret mass-balance</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="c1"># coefficients physically.</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="n">CO2_GENERATION_M3_PER_H</span> <span class="o">=</span> <span class="mf">0.0187</span>
 </span></pre></div>
 
 
@@ -737,6 +766,80 @@ sensitivity of results to each setting can be tested by changing a single value.
         
     </div>
     <a class="headerlink" href="#REQUIRED_PREDICTION_INPUTS"></a>
+    
+    
+
+                </section>
+                <section id="SENS_HOLD_NOT_OCCUPIED_H">
+                    <div class="attr variable">
+            <span class="name">SENS_HOLD_NOT_OCCUPIED_H</span>        =
+<span class="default_value">(12, 24, 72, 168)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#SENS_HOLD_NOT_OCCUPIED_H"></a>
+    
+    
+
+                </section>
+                <section id="SENS_HOLD_OCCUPIED_H">
+                    <div class="attr variable">
+            <span class="name">SENS_HOLD_OCCUPIED_H</span>        =
+<span class="default_value">(0.5, 1, 2, 4)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#SENS_HOLD_OCCUPIED_H"></a>
+    
+    
+
+                </section>
+                <section id="SENS_MIN_COVERAGE">
+                    <div class="attr variable">
+            <span class="name">SENS_MIN_COVERAGE</span>        =
+<span class="default_value">(0.25, 0.5, 0.75, 1.0)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#SENS_MIN_COVERAGE"></a>
+    
+    
+
+                </section>
+                <section id="SENS_TEST_FRACTION">
+                    <div class="attr variable">
+            <span class="name">SENS_TEST_FRACTION</span>        =
+<span class="default_value">(0.15, 0.25, 0.35)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#SENS_TEST_FRACTION"></a>
+    
+    
+
+                </section>
+                <section id="SENS_TRAIN_DAYS">
+                    <div class="attr variable">
+            <span class="name">SENS_TRAIN_DAYS</span>        =
+<span class="default_value">(14, 28, 42, None)</span>
+
+        
+    </div>
+    <a class="headerlink" href="#SENS_TRAIN_DAYS"></a>
+    
+    
+
+                </section>
+                <section id="SENS_FIXED_ALPHAS">
+                    <div class="attr variable">
+            <span class="name">SENS_FIXED_ALPHAS</span>        =
+<input id="SENS_FIXED_ALPHAS-view-value" class="view-value-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+            <label class="view-value-button pdoc-button" for="SENS_FIXED_ALPHAS-view-value"></label><span class="default_value">array([1.e-06, 1.e-05, 1.e-04, 1.e-03, 1.e-02, 1.e-01, 1.e+00, 1.e+01,
+       1.e+02, 1.e+03, 1.e+04])</span>
+
+        
+    </div>
+    <a class="headerlink" href="#SENS_FIXED_ALPHAS"></a>
     
     
 

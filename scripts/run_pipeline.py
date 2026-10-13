@@ -20,6 +20,7 @@ STEPS = {
     "4": "04_train_linear_models.py",
     "5": "05_polynomial_ridge.py",
     "6": "06_train_final_models.py",
+    "7": "07_sensitivity_analysis.py",
 }
 
 

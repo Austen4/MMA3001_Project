@@ -298,6 +298,7 @@ class TimeOfDayBaseline:
 
     @staticmethod
     def _key(df):
+        """(floor of local hour, weekend flag) index used to look up cell means."""
         return pd.MultiIndex.from_arrays([np.floor(df["hour_local"]).astype(int), df["weekend"].astype(bool)])
 
 
@@ -331,6 +332,7 @@ class LinearLeastSquares:
         self.name = name or f"OLS ({', '.join(self.features)})"
 
     def _design(self, df):
+        """Design matrix ``[1, features]``; raises ``ValueError`` on missing columns."""
         missing = set(self.features) - set(df.columns)
         if missing:
             raise ValueError(f"dataset is missing features: {sorted(missing)}")
@@ -425,6 +427,7 @@ class RidgeRegression:
         self.name = name or ("Ridge (environment + time)" if include_time else "Ridge (environment)")
 
     def _design(self, df):
+        """Feature table (environmental columns, plus time features if enabled); raises on missing columns."""
         missing = set(self.features) - set(df.columns)
         if missing:
             raise ValueError(f"dataset is missing features: {sorted(missing)}")
@@ -532,6 +535,7 @@ class PolynomialRidgeRegression:
         self.name = name
 
     def _raw(self, df):
+        """Raw feature array (NaN kept for imputation); raises ``ValueError`` on missing columns."""
         missing = set(self.features) - set(df.columns)
         if missing:
             raise ValueError(f"dataset is missing features: {sorted(missing)}")

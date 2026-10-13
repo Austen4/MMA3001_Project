@@ -1,0 +1,23 @@
+         2006978 function calls (1974990 primitive calls) in 2.107 seconds
+
+   Ordered by: cumulative time
+   List reduced from 1384 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    2.112    2.112 C:\Users\auste\OneDrive\Documents\GitHub\MMA3001_Project\building_occupancy\models.py:439(fit)
+    425/1    0.006    0.000    2.107    2.107 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\base.py:1381(wrapper)
+        1    0.000    0.000    2.106    2.106 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\model_selection\_search.py:960(fit)
+        1    0.000    0.000    2.087    2.087 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\model_selection\_search.py:1711(_run_search)
+        1    0.000    0.000    2.086    2.086 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\model_selection\_search.py:1043(evaluate_candidates)
+        1    0.000    0.000    2.084    2.084 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\parallel.py:54(__call__)
+        1    0.000    0.000    2.084    2.084 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\joblib\parallel.py:1995(__call__)
+      107    0.002    0.000    2.084    0.019 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\joblib\parallel.py:1914(_get_sequential_output)
+      105    0.009    0.000    1.986    0.019 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\parallel.py:140(__call__)
+      105    0.004    0.000    1.967    0.019 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\model_selection\_validation.py:670(_fit_and_score)
+  634/422    0.003    0.000    1.242    0.003 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_set_output.py:325(wrapped)
+      106    0.003    0.000    1.205    0.011 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\pipeline.py:578(fit)
+      106    0.004    0.000    0.956    0.009 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\pipeline.py:516(_fit)
+      845    0.009    0.000    0.946    0.001 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\validation.py:2932(validate_data)
+      212    0.001    0.000    0.935    0.004 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\joblib\memory.py:330(__call__)
+
+

@@ -1,0 +1,3 @@
+model,n_rows,n_columns,kernel,estimated_gflop,fit_s,achieved_gflop_per_s,arithmetic_intensity_flop_per_byte,profiled_s,linear_algebra_s,linear_algebra_share,tracemalloc_peak_mb
+Ridge (environment + time),2459,18,Cholesky ridge solve per penalty per fold,0.04291542,2.494080699980259,0.017206909143052063,2.25,2.1074171,0.016599000000000003,0.00787646640999544,2.2460861206054688
+Polynomial ridge (degree 2),2459,54,thin SVD per fold (all penalties),0.169693704,0.07964079990051687,2.130738317696112,6.75,0.10152690000000002,0.07398529999999999,0.7287260814621541,5.339756965637207

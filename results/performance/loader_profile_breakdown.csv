@@ -1,0 +1,3 @@
+loader,profiled_total_s,read_csv_s,timestamp_parsing_s,categorical_s,identical_output
+original (categorical + general parser),71.44333140000002,12.448682500000002,28.310692500000002,4.0710381,True
+optimised (string + fixed-offset parser),34.7218142,11.0155407,2.6656706,3.4193680000000004,True

@@ -100,6 +100,17 @@ PREDICTION_INPUTS = {
 }
 REQUIRED_PREDICTION_INPUTS = ("co2",)   # others are imputed (with a warning) if absent
 
+# ------------------------------------------------------------------ sensitivity analysis
+# One-at-a-time: each setting is varied from its baseline value above while all others are
+# held at baseline (sensor FINAL_SENSOR, FINAL_BIN_MINUTES bins). Bin width, polynomial
+# degree and the ridge penalty grid are covered by steps 4-5.
+SENS_HOLD_NOT_OCCUPIED_H = (12, 24, 72, 168)
+SENS_HOLD_OCCUPIED_H = (0.5, 1, 2, 4)
+SENS_MIN_COVERAGE = (0.25, 0.5, 0.75, 1.0)
+SENS_TEST_FRACTION = (0.15, 0.25, 0.35)
+SENS_TRAIN_DAYS = (14, 28, 42, None)    # most recent N days before the hold-out; None = all
+SENS_FIXED_ALPHAS = np.logspace(-6, 4, 11)
+
 # CO2 generated per seated adult office worker (~1.2 met): 0.0052 L/s = 0.0187 m3/h
 # (Persily & de Jonge, 2017, Indoor Air 27(5)). Used only to interpret mass-balance
 # coefficients physically.

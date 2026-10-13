@@ -110,7 +110,8 @@ def bin_state_intervals(t_s, status, headcount, bin_s,
     })
 
 
-def bin_occupancy(events, bin_minutes):
+def bin_occupancy(events, bin_minutes, hold_not_occupied_s=config.HOLD_NOT_OCCUPIED_S,
+                  hold_occupied_s=config.HOLD_OCCUPIED_S):
     """Time-weighted occupancy per floorspace on a fixed time grid.
 
     Parameters
@@ -119,6 +120,8 @@ def bin_occupancy(events, bin_minutes):
         Output of :func:`load_occupancy_events`.
     bin_minutes : int
         Bin width in minutes (must divide 1440 so bins align with days).
+    hold_not_occupied_s, hold_occupied_s : int
+        Carry-forward limits, see :func:`bin_state_intervals`.
 
     Returns
     -------
@@ -133,7 +136,7 @@ def bin_occupancy(events, bin_minutes):
     for fs, g in events.groupby("floorspaceid", sort=True):
         t_s = (g["t"] - pd.Timestamp(0, tz="UTC")) // pd.Timedelta(seconds=1)
         b = bin_state_intervals(t_s.to_numpy(np.int64), g["occupancystatus"].to_numpy(),
-                                g["headcount"].to_numpy(), bin_s)
+                                g["headcount"].to_numpy(), bin_s, hold_not_occupied_s, hold_occupied_s)
         b.insert(0, "floorspaceid", fs)
         parts.append(b)
     out = pd.concat(parts, ignore_index=True)

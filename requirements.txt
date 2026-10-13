@@ -6,3 +6,4 @@ matplotlib
 openpyxl
 tzdata
 pytest>=8
+pdoc>=14

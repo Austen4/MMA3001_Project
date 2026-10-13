@@ -126,10 +126,12 @@ def benchmark(df, tag, repeats=3):
                           y[va], y[tr].mean()))
 
         def path():
+            """CV MAE (folds x alphas) from one SVD per fold."""
             return np.array([np.abs(Xv @ models.ridge_path_svd(Xt, yt, alphas) + ym - yv[:, None]).mean(0)
                              for Xt, yt, Xv, yv, ym in folds])
 
         def loop():
+            """CV MAE (folds x alphas) from one Cholesky ridge fit per alpha."""
             return np.array([[np.abs(Ridge(alpha=a, fit_intercept=False, solver="cholesky").fit(Xt, yt)
                                      .predict(Xv) + ym - yv).mean() for a in alphas]
                              for Xt, yt, Xv, yv, ym in folds])

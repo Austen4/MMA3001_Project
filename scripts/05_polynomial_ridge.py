@@ -23,21 +23,20 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import matplotlib  # noqa: E402
-
-matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from sklearn.linear_model import Ridge  # noqa: E402
 from sklearn.model_selection import TimeSeriesSplit  # noqa: E402
 from sklearn.preprocessing import PolynomialFeatures  # noqa: E402
 
-from building_occupancy import config, evaluation, models  # noqa: E402
+from building_occupancy import config, evaluation, models, plotting  # noqa: E402  (sets Agg backend)
+from building_occupancy.plotting import INK, INK_MUTED, SURFACE  # noqa: E402
+
+import matplotlib.pyplot as plt  # noqa: E402
 
 OUT = config.RESULTS_DIR / "polynomial_ridge"
-INK, INK_MUTED, GRID, SURFACE = "#0b0b0b", "#898781", "#e6e5e0", "#fcfcfb"
-CV_COLOR, HOLDOUT_COLOR = "#2a78d6", "#eb6834"
+PLOT_SENSOR, PLOT_BIN = 6012002000869, 60   # same configuration as the linear-model figure
+CV_COLOR, HOLDOUT_COLOR = plotting.CATEGORICAL[:2]
 Y_FLOOR = -1.0   # lowest R2 drawn in the degree-sweep figure
 
 
@@ -51,20 +50,23 @@ def degree_sweep(df, tag):
 
     Returns
     -------
-    (pandas.DataFrame, pandas.DataFrame)
-        Per-degree hold-out/train results and per-fold CV results.
+    (pandas.DataFrame, pandas.DataFrame, pandas.DataFrame, dict)
+        Per-degree hold-out/train results, per-fold CV results, the hold-out rows, and
+        hold-out predictions keyed ``"Degree d (n terms)"``.
     """
     train, test = evaluation.chronological_split(df)
     factories = {d: (lambda d=d: models.PolynomialRidgeRegression(degrees=d)) for d in config.POLY_DEGREES}
     res, fitted = evaluation.evaluate(factories, train, test)
     res = res.rename(columns={"model": "degree"})
+    predictions = {}
     for i, d in enumerate(res["degree"]):
         m = fitted[d]
         train_scores = evaluation.regression_metrics(train[config.TARGET], m.predict(train))
         res.loc[i, ["train_r2", "train_mae"]] = train_scores["r2"], train_scores["mae"]
         res.loc[i, ["alpha", "n_terms"]] = m.alpha_, m.n_terms_
+        predictions[f"Degree {d} ({m.n_terms_} terms)"] = m.predict(test)
     cv = evaluation.cross_validate(factories, df).rename(columns={"model": "degree"})
-    return res.assign(**tag), cv.assign(**tag)
+    return res.assign(**tag), cv.assign(**tag), test, predictions
 
 
 def comparison(df, tag):
@@ -156,14 +158,18 @@ def main():
     """Run all polynomial-ridge experiments and write results."""
     OUT.mkdir(parents=True, exist_ok=True)
     sweep, cv, comp, cond, bench = [], [], [], [], []
+    plot_test, plot_preds, plot_selected = None, {}, None
     for sensor in config.ENV_SENSORS:
         for m in config.BIN_MINUTES:
             t0 = time.perf_counter()
             df, tag = load(sensor, m), {"sensor": sensor, "bin_minutes": m}
-            s, c = degree_sweep(df, tag)
+            s, c, test, preds = degree_sweep(df, tag)
             sweep.append(s)
             cv.append(c)
             comp.append(comparison(df, tag))
+            if (sensor, m) == (PLOT_SENSOR, PLOT_BIN):
+                plot_test, plot_preds = test, preds
+                plot_selected = int(comp[-1]["selected_degree"].dropna().iloc[0])
             if m == 60:
                 cond += conditioning(df, tag)
                 bench += benchmark(df, tag)
@@ -192,6 +198,11 @@ def main():
     print(pd.DataFrame(bench).round(4).to_string(index=False))
 
     plot_sweep(table)
+    plotting.prediction_table(plot_test, plot_preds).to_csv(OUT / "test_period_predictions.csv", index=False)
+    plotting.plot_test_period(
+        plot_test, plot_preds, OUT / "test_period_predictions.png",
+        f"Polynomial ridge by degree: building headcount (4 monitored rooms), observed in black - sensor "
+        f"{PLOT_SENSOR}, {PLOT_BIN}-min bins, first 14 days of hold-out. Degree chosen by CV: {plot_selected}")
     print(f"\nResults written to {OUT}")
 
 
@@ -205,8 +216,7 @@ def plot_sweep(table):
         for c, m in enumerate(bins):
             ax = axes[r, c]
             d = table[(table["sensor"] == sensor) & (table["bin_minutes"] == m)].sort_values("degree")
-            ax.set_facecolor(SURFACE)
-            ax.grid(axis="y", color=GRID, lw=0.8)
+            plotting.style_axes(ax)
             ax.axhline(0, color=INK_MUTED, lw=1)
             ax.fill_between(d["degree"], d["r2_mean"] - d["r2_std"], d["r2_mean"] + d["r2_std"],
                             color=CV_COLOR, alpha=0.12, lw=0)
@@ -223,9 +233,6 @@ def plot_sweep(table):
             ax.set_xticks(degrees, [f"{g}\n({models.n_polynomial_terms(len(models.ENV_FEATURES), g)})"
                                     for g in degrees])
             ax.set_ylim(Y_FLOOR - 0.05, 1)
-            ax.tick_params(colors=INK_MUTED, labelsize=8, length=0)
-            for s in ax.spines.values():
-                s.set_visible(False)
             ax.set_title(f"Sensor {sensor}, {m}-min bins", loc="left", fontsize=10, color=INK, fontweight="bold")
             if r == len(sensors) - 1:
                 ax.set_xlabel("Polynomial degree (number of terms)", fontsize=9, color=INK_MUTED)

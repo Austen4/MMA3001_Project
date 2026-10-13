@@ -20,22 +20,19 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import matplotlib  # noqa: E402
-
-matplotlib.use("Agg")
-import matplotlib.dates as mdates  # noqa: E402
-import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from building_occupancy import config, evaluation, models  # noqa: E402
+from building_occupancy import config, evaluation, models, plotting  # noqa: E402  (sets Agg backend)
+from building_occupancy.plotting import GRID, INK, INK_MUTED, SURFACE  # noqa: E402
+
+import matplotlib.pyplot as plt  # noqa: E402
 
 OUT = config.RESULTS_DIR / "linear_models"
 PLOT_SENSOR, PLOT_BIN = 6012002000869, 60
-INK, INK_MUTED, GRID, SURFACE = "#0b0b0b", "#898781", "#e6e5e0", "#fcfcfb"
-SERIES = {"Time-of-day baseline": "#2a78d6", "CO2 mass balance (OLS)": "#eb6834",
-          "Ridge (environment)": "#1baf7a", "Ridge (environment + time)": "#eda100"}
-SENSOR_COLORS = ["#2a78d6", "#eb6834"]
+# Models shown in the test-period figure, in panel order.
+PLOTTED = ["Time-of-day baseline", "CO2 mass balance (OLS)", "Ridge (environment)", "Ridge (environment + time)"]
+SENSOR_COLORS = plotting.CATEGORICAL[:2]
 
 
 def solver_comparison(df, features, repeats=20):
@@ -78,7 +75,8 @@ def solver_comparison(df, features, repeats=20):
 def main():
     """Run all experiments and write results."""
     OUT.mkdir(parents=True, exist_ok=True)
-    holdout, cv, physics, ridge_coefs, solvers, test_preds = [], [], [], [], [], {}
+    holdout, cv, physics, ridge_coefs, solvers = [], [], [], [], []
+    plot_test, plot_preds = None, {}
     for sensor in config.ENV_SENSORS:
         for m in config.BIN_MINUTES:
             df = pd.read_csv(config.PROCESSED_DIR / f"dataset_{sensor}_{m}min.csv", parse_dates=["time_utc"])
@@ -100,7 +98,7 @@ def main():
                                  (models.ENV_FEATURES, "all environmental (unscaled)")):
                 solvers += [{**tag, "design": label, **row} for row in solver_comparison(df, feats)]
             if (sensor, m) == (PLOT_SENSOR, PLOT_BIN):
-                test_preds = {"test": test, **{n: fitted[n].predict(test) for n in SERIES}}
+                plot_test, plot_preds = test, {n: fitted[n].predict(test) for n in fitted}
             print(f"sensor {sensor}, {m:>3} min: done ({len(df):,} rows)")
 
     holdout = pd.concat(holdout, ignore_index=True)
@@ -123,41 +121,13 @@ def main():
     print("\nMass-balance fit:")
     print(pd.DataFrame(physics).round(4).to_string(index=False))
 
-    plot_test_period(test_preds)
+    plotting.prediction_table(plot_test, plot_preds).to_csv(OUT / "test_period_predictions.csv", index=False)
+    plotting.plot_test_period(
+        plot_test, {n: plot_preds[n] for n in PLOTTED}, OUT / "test_period_predictions.png",
+        f"Building headcount (4 monitored rooms), observed in black - sensor {PLOT_SENSOR}, "
+        f"{PLOT_BIN}-min bins, first 14 days of hold-out")
     plot_r2(holdout)
     print(f"\nResults written to {OUT}")
-
-
-def _style(ax):
-    ax.set_facecolor(SURFACE)
-    ax.grid(axis="y", color=GRID, lw=0.8)
-    ax.tick_params(colors=INK_MUTED, labelsize=8, length=0)
-    for s in ax.spines.values():
-        s.set_visible(False)
-
-
-def plot_test_period(p, days=14):
-    """Observed vs predicted building headcount over the first ``days`` of the test period."""
-    test = p["test"]
-    sel = (test["time_utc"] < test["time_utc"].iloc[0] + pd.Timedelta(days=days)).to_numpy()
-    t = test["time_utc"][sel].dt.tz_convert(config.TIMEZONE).dt.tz_localize(None)
-    names = list(SERIES)
-    fig, axes = plt.subplots(len(names), 1, figsize=(11, 2.1 * len(names) + 0.8), sharex=True,
-                             sharey=True, facecolor=SURFACE)
-    for ax, name in zip(axes, names):
-        _style(ax)
-        ax.plot(t, test[config.TARGET][sel], color=INK, lw=1.2, label="Observed")
-        ax.plot(t, p[name][sel], color=SERIES[name], lw=2, label=name)
-        ax.set_title(name, loc="left", fontsize=10, color=INK, fontweight="bold")
-        ax.set_ylim(bottom=0)
-    axes[-1].xaxis.set_major_locator(mdates.DayLocator(interval=2))
-    axes[-1].xaxis.set_major_formatter(mdates.DateFormatter("%a %d %b"))
-    axes[-1].set_xlabel("Sydney local time", fontsize=9, color=INK_MUTED)
-    fig.text(0.01, 0.985, f"Building headcount (4 monitored rooms), observed in black - sensor {PLOT_SENSOR}, "
-             f"{PLOT_BIN}-min bins, first {days} days of hold-out", fontsize=9, color=INK_MUTED, va="top")
-    fig.tight_layout(rect=(0, 0, 1, 0.97))
-    fig.savefig(OUT / "test_period_predictions.png", dpi=150, facecolor=SURFACE)
-    plt.close(fig)
 
 
 def plot_r2(holdout):
@@ -167,7 +137,7 @@ def plot_r2(holdout):
     fig, axes = plt.subplots(1, len(bins), figsize=(11, 3.4), sharey=True, facecolor=SURFACE)
     lo = min(-0.5, holdout["r2"].min() - 0.05)
     for ax, m in zip(axes, bins):
-        _style(ax)
+        plotting.style_axes(ax)
         ax.grid(axis="x", color=GRID, lw=0.8)
         ax.axvline(0, color=INK_MUTED, lw=1)
         for i, (sensor, color) in enumerate(zip(config.ENV_SENSORS, SENSOR_COLORS)):

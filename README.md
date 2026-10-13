@@ -1,4 +1,4 @@
-# MMA3001_Project â€” Building occupancy from environmental sensors
+# MMA3001_Project — Building occupancy from environmental sensors
 
 Estimating how many people are in a building from indoor environmental measurements
 (CO2, temperature, humidity, VOCs, particulates). Occupancy drives ventilation demand,
@@ -64,7 +64,7 @@ data/                 raw data only; data/processed is generated
 | `data/5occupancySensor_MayToDec2024_9MRows.zip` | occupancy sensor event export (9.1 M rows) |
 | `data/Sensor ID and Locations.xlsx` | sensor IDs and room locations (supplied) |
 
-Despite the "MayToDec2024" file names, the data span Nov 2023 â€“ Apr 2026.
+Despite the "MayToDec2024" file names, the data span Nov 2023 – Apr 2026.
 
 ### Project history
 
@@ -76,7 +76,7 @@ was verified to reproduce that version's `5EnvSensor_deduplicated.csv` and
 
 ## Problem definition
 
-**Target (output):** `building_headcount` â€” time-weighted mean number of people, summed
+**Target (output):** `building_headcount` — time-weighted mean number of people, summed
 over the four occupancy-monitored rooms reporting through both sensor periods (60-G.20,
 60-G.25 and two unmapped spaces; `config.BUILDING_ROOMS`), per 10/30/60-minute bin.
 This is the monitored part of the building, not every occupant.
@@ -87,17 +87,17 @@ This is the monitored part of the building, not every occupant.
 |---|---|---|
 | `co2` | ppm | bin mean |
 | `dco2_dt`, `dco2_dt_lag1` | ppm/h | backward difference, and its value one bin earlier |
-| `temp`, `dtemp_dt` | Â°C, Â°C/h | |
+| `temp`, `dtemp_dt` | °C, °C/h | |
 | `rh`, `drh_dt` | %RH, %RH/h | |
 | `voc` | ppb | |
-| `pm25` | Âµg/mÂ³ | missing values median-imputed (ridge only) |
+| `pm25` | µg/m³ | missing values median-imputed (ridge only) |
 
 Rows are dropped when CO2 or its derivative is unavailable (gaps). Derivatives use only
 past data, so the models could run in real time.
 
-**Data available:** two environmental sensors overlap the occupancy data â€”
-`6012002000869` (building 60, G.38 mezzanine; Marâ€“Jun 2024) and `6012002000326`
-(location unknown; Sep 2025â€“Apr 2026). Neither sits inside a monitored room.
+**Data available:** two environmental sensors overlap the occupancy data —
+`6012002000869` (building 60, G.38 mezzanine; Mar–Jun 2024) and `6012002000326`
+(location unknown; Sep 2025–Apr 2026). Neither sits inside a monitored room.
 
 ## Methods
 
@@ -108,11 +108,11 @@ past data, so the models could run in real time.
 | CO2 mass balance (OLS) | linear numerical method | `co2`, `dco2_dt` |
 | Ridge (environment) | machine learning | all environmental features |
 | Ridge (environment + time) | machine learning | environmental + time-of-day |
-| Polynomial ridge (degree 1â€“4) | machine learning | all monomials of the environmental features up to degree *d* (9 / 54 / 219 / 714 terms) |
+| Polynomial ridge (degree 1–4) | machine learning | all monomials of the environmental features up to degree *d* (9 / 54 / 219 / 714 terms) |
 
-The mass balance of a well-mixed zone, `V dC/dt = NÂ·G âˆ’ Q(C âˆ’ C_out)`, is linear in the
-occupancy `N`: `N = aÂ·dC/dt + bÂ·C + c`. It is fitted by least squares using our own
-Householder-QR + back-substitution solver (stable: works with cond(X), not cond(X)Â²);
+The mass balance of a well-mixed zone, `V dC/dt = N·G − Q(C − C_out)`, is linear in the
+occupancy `N`: `N = a·dC/dt + b·C + c`. It is fitted by least squares using our own
+Householder-QR + back-substitution solver (stable: works with cond(X), not cond(X)²);
 the fitted coefficients imply a volume `V`, ventilation rate `Q` and supply CO2 `C_out`,
 which are checked for physical plausibility. Ridge regression chooses its penalty by
 time-ordered cross-validation on the training data only.
@@ -120,30 +120,30 @@ time-ordered cross-validation on the training data only.
 Polynomial ridge standardises the inputs, expands them into all monomials up to degree *d*,
 standardises the terms, and chooses degree and penalty jointly by inner time-series CV.
 The penalty search uses one thin SVD per fold for all 21 penalties
-(`Î²(Î±) = V diag(s/(sÂ²+Î±)) Uáµ€y`, `ridge_path_svd`) instead of one fit per penalty.
+(`β(α) = V diag(s/(s²+α)) Uᵀy`, `ridge_path_svd`) instead of one fit per penalty.
 
 **Validation:** chronological hold-out (last 25%) and 5-fold rolling-origin
-cross-validation; metrics MAE, RMSE, bias, RÂ². Correctness of the solver and
+cross-validation; metrics MAE, RMSE, bias, R². Correctness of the solver and
 mass-balance implementation is verified against an exact simulated CO2 solution with
 known `V`, `Q`, `C_out` (`tests/test_models.py`).
 
 ## First results (`results/linear_models/`)
 
-Hold-out RÂ² (60-min bins):
+Hold-out R² (60-min bins):
 
 | Sensor | Time-of-day | Mass balance | Ridge (env) | Ridge (env + time) |
 |---|---|---|---|---|
-| 6012002000869 (bldg 60) | âˆ’0.11 | 0.33 | 0.35 | 0.35 |
+| 6012002000869 (bldg 60) | −0.11 | 0.33 | 0.35 | 0.35 |
 | 6012002000326 (unknown) | 0.52 | 0.05 | 0.05 | 0.51 |
 
 - Sensor 0869 carries building-wide activity information the clock does not: in the test
   period the building goes quiet from late May and only the environmental models follow
   (`test_period_predictions.png`).
-- Sensor 0326 carries none: environmental models score â‰ˆ 0.
+- Sensor 0326 carries none: environmental models score ≈ 0.
 - The mass-balance coefficients are **not physically consistent** (near-zero or negative
   implied volume): the sensor is not in the rooms being counted, so CO2 *level* acts as a
   proxy for building activity rather than a mass balance. Co-located sensors are needed.
-- 30â€“60 min bins beat 10 min (finite differences of 10-min CO2 are noisy).
+- 30–60 min bins beat 10 min (finite differences of 10-min CO2 are noisy).
 - QR vs normal equations: relative coefficient error ~1e-15 vs ~1e-13 against an SVD
   reference (`solver_comparison.csv`), consistent with the squared condition number.
 - Linear ridge selects the smallest penalty searched (now 1e-6; the CV error is flat for
@@ -151,27 +151,27 @@ Hold-out RÂ² (60-min bins):
 
 ## Polynomial ridge (`results/polynomial_ridge/`)
 
-RÂ², 60-min bins, sensor 6012002000869 (`degree_sweep.png`):
+R², 60-min bins, sensor 6012002000869 (`degree_sweep.png`):
 
-| Degree (terms) | Training | Hold-out | Rolling CV mean Â± sd | Penalty Î± |
+| Degree (terms) | Training | Hold-out | Rolling CV mean ± sd | Penalty α |
 |---|---|---|---|---|
-| 1 (9) | 0.48 | 0.35 | 0.35 Â± 0.32 | 1e-6 |
-| 2 (54) | 0.54 | **0.37** | **0.40 Â± 0.22** | 100 |
-| 3 (219) | 0.58 | 0.15 | 0.29 Â± 0.21 | 316 |
-| 4 (714) | 0.65 | âˆ’0.54 | 0.11 Â± 0.51 | 316 |
+| 1 (9) | 0.48 | 0.35 | 0.35 ± 0.32 | 1e-6 |
+| 2 (54) | 0.54 | **0.37** | **0.40 ± 0.22** | 100 |
+| 3 (219) | 0.58 | 0.15 | 0.29 ± 0.21 | 316 |
+| 4 (714) | 0.65 | −0.54 | 0.11 ± 0.51 | 316 |
 
-- Classic biasâ€“variance behaviour: training RÂ² rises with degree while test RÂ² peaks at
+- Classic bias–variance behaviour: training R² rises with degree while test R² peaks at
   degree 2 and collapses at degree 4 (overfitting despite strong regularisation).
 - `test_period_predictions.png` shows how the higher degrees fail: degree 2 tracks the
-  weekday peaks slightly better than degree 1, while degrees 3â€“4 produce isolated
-  spurious spikes (degree 4 predicts 69 people on an empty Saturday) â€” the polynomial
+  weekday peaks slightly better than degree 1, while degrees 3–4 produce isolated
+  spurious spikes (degree 4 predicts 69 people on an empty Saturday) — the polynomial
   extrapolating outside the range of combinations seen in training. Predictions for every
   hold-out hour are in `test_period_predictions.csv` (same layout as
   `results/linear_models/test_period_predictions.csv`).
-- Degree 2 gains little over linear (+0.02 hold-out, +0.05 CV RÂ²; MAE 1.53 vs 1.68 at
+- Degree 2 gains little over linear (+0.02 hold-out, +0.05 CV R²; MAE 1.53 vs 1.68 at
   10-min bins). Selecting the degree by inner CV chose 2 at 10/30 min and 1 at 60 min.
-- Sensor 6012002000326: no degree helps (all RÂ² â‰¤ 0.07); with no signal, inner CV still
-  picked degree 2 at 10/30 min and *lowered* hold-out RÂ² (âˆ’0.20 vs 0.00) â€” model selection
+- Sensor 6012002000326: no degree helps (all R² ≤ 0.07); with no signal, inner CV still
+  picked degree 2 at 10/30 min and *lowered* hold-out R² (−0.20 vs 0.00) — model selection
   cannot create information the inputs do not contain.
 
 Numerical behaviour (`conditioning.csv`, `solver_benchmark.csv`):
@@ -182,7 +182,7 @@ Numerical behaviour (`conditioning.csv`, `solver_benchmark.csv`):
   rows, so their powers are nearly proportional; the ridge penalty keeps the solve stable.
 - SVD path vs one Cholesky ridge fit per penalty (21 penalties, 5 folds): identical CV
   errors (max difference 3e-4 at degree 4, from the ill-conditioned normal equations);
-  30â€“50Ã— faster at degree 1 and ~2Ã— at degree 2, but no faster (or slower) at degrees
-  3â€“4 (`speedup` 0.4â€“1.3). With few rows per term the SVD's
-  `20nÂ³` term outweighs the `21 m nÂ²` it saves, and the SVD runs at a lower GFLOP/s than
-  BLAS-3 Cholesky (lower arithmetic intensity) â€” see `solver_benchmark.csv`.
+  30–55× faster at degree 1 and 2–2.6× at degree 2, but roughly break-even at degrees
+  3–4 (`speedup` 0.4–1.5 across two runs; timings vary run to run). With few rows per term the SVD's
+  `20n³` term outweighs the `21 m n²` it saves, and the SVD runs at a lower GFLOP/s than
+  BLAS-3 Cholesky (lower arithmetic intensity) — see `solver_benchmark.csv`.

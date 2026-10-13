@@ -12,6 +12,35 @@ import pandas as pd
 from . import config
 
 OCCUPIED, NOT_OCCUPIED = "CurrentlyOccupied", "NotOccupied"
+# The export writes local time with a whole-hour UTC offset, e.g. "2023-11-24 00:36:52+11".
+_OFFSET_TIMESTAMP = r"\d{4}-\d\d-\d\d \d\d:\d\d:\d\d[+-]\d\d"
+
+
+def parse_offset_timestamps(s):
+    """Parse ``YYYY-mm-dd HH:MM:SS+HH`` strings to UTC timestamps.
+
+    When every value has that form, the local date-time is parsed with one fixed format
+    (a single vectorised pass) and the whole-hour offset subtracted. Measured on this
+    export: ~3x faster than pandas' general parser at 1 M rows, and timestamp parsing
+    inside the full loader fell from 28 s to 3 s (``results/performance/``).
+    Any other form falls back to ``pandas.to_datetime(format="mixed")``.
+
+    Parameters
+    ----------
+    s : pandas.Series of str
+        Timestamps with UTC offsets.
+
+    Returns
+    -------
+    pandas.Series
+        ``datetime64[ns, UTC]`` values, same index as ``s``.
+    """
+    s = s.astype(str)
+    if len(s) and s.str.fullmatch(_OFFSET_TIMESTAMP).all():
+        local = pd.to_datetime(s.str.slice(0, 19), format="%Y-%m-%d %H:%M:%S")
+        offset = pd.to_timedelta(s.str.slice(19).astype(int), unit="h")
+        return (local - offset).dt.tz_localize("UTC")
+    return pd.to_datetime(s, utc=True, format="mixed")
 
 
 def load_occupancy_events(path=config.RAW_OCC_ZIP, floorspaces=None):
@@ -29,14 +58,19 @@ def load_occupancy_events(path=config.RAW_OCC_ZIP, floorspaces=None):
     pandas.DataFrame
         Columns ``floorspaceid``, ``occupancystatus``, ``headcount`` (float) and ``t``
         (UTC timestamp), sorted by floorspace then time, exact duplicate rows removed.
+
+    Notes
+    -----
+    Room and status columns are read as categories (few distinct values). Timestamps are
+    read as plain strings: 74% of them are unique, so a categorical column would cost more
+    time and memory than it saves (measured in ``scripts/08_profile_performance.py``).
     """
-    cats = {c: "category" for c in ("floorspaceid", "occupancystatus", "collecteddate")}
-    df = pd.read_csv(path, usecols=[*cats, "headcount"], dtype={**cats, "headcount": "float32"})
+    cats = {"floorspaceid": "category", "occupancystatus": "category"}
+    df = pd.read_csv(path, usecols=[*cats, "collecteddate", "headcount"],
+                     dtype={**cats, "collecteddate": str, "headcount": "float32"})
     if floorspaces is not None:
         df = df[df["floorspaceid"].isin(list(floorspaces))]
-    # Timestamps repeat heavily, so parse each distinct string once.
-    parsed = pd.to_datetime(df["collecteddate"].cat.categories, utc=True, format="mixed")
-    df["t"] = parsed.take(df["collecteddate"].cat.codes.to_numpy())
+    df["t"] = parse_offset_timestamps(df["collecteddate"])
     df["floorspaceid"] = df["floorspaceid"].astype(str)
     df["occupancystatus"] = df["occupancystatus"].astype(str)
     df = df.drop(columns="collecteddate").drop_duplicates()

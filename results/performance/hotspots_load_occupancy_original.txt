@@ -1,0 +1,23 @@
+         575119 function calls (562059 primitive calls) in 71.443 seconds
+
+   Ordered by: cumulative time
+   List reduced from 990 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.411    0.411   71.443   71.443 C:\Users\auste\OneDrive\Documents\GitHub\MMA3001_Project\building_occupancy\performance.py:154(load_occupancy_events_categorical)
+        1    0.000    0.000   35.678   35.678 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\readers.py:349(read_csv)
+        1    0.000    0.000   35.678   35.678 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\readers.py:258(_read)
+        1    0.000    0.000   35.672   35.672 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\readers.py:1934(read)
+        1   12.057   12.057   35.671   35.671 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\c_parser_wrapper.py:226(read)
+        1    0.091    0.091   28.447   28.447 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\tools\datetimes.py:687(to_datetime)
+        1    0.000    0.000   28.355   28.355 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\tools\datetimes.py:321(_convert_listlike_datetimes)
+        1   28.220   28.220   28.224   28.224 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\arrays\datetimes.py:2578(objects_to_datetime64)
+        1    0.110    0.110   16.343   16.343 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\c_parser_wrapper.py:361(_concatenate_chunks)
+        3    0.015    0.005   14.741    4.914 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\dtypes\concat.py:176(union_categoricals)
+        2    0.000    0.000    9.083    4.541 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\indexes\base.py:2817(unique)
+      426    8.353    0.020    8.364    0.020 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\indexes\base.py:2457(is_unique)
+      827    0.011    0.000    6.534    0.008 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\arrays\categorical.py:3055(recode_for_categories)
+      690    0.001    0.000    6.330    0.009 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\indexes\base.py:6252(get_indexer_for)
+        2    0.000    0.000    5.064    2.532 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\base.py:1153(unique)
+
+

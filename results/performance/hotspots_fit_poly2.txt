@@ -1,0 +1,23 @@
+         13827 function calls (13738 primitive calls) in 0.102 seconds
+
+   Ordered by: cumulative time
+   List reduced from 601 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.001    0.001    0.102    0.102 C:\Users\auste\OneDrive\Documents\GitHub\MMA3001_Project\building_occupancy\models.py:544(fit)
+        6    0.001    0.000    0.074    0.012 C:\Users\auste\OneDrive\Documents\GitHub\MMA3001_Project\building_occupancy\models.py:169(ridge_path_svd)
+        6    0.073    0.012    0.073    0.012 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\linalg\_linalg.py:1666(svd)
+        6    0.002    0.000    0.018    0.003 C:\Users\auste\OneDrive\Documents\GitHub\MMA3001_Project\building_occupancy\models.py:469(fit_transform)
+    17/11    0.000    0.000    0.012    0.001 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\_set_output.py:325(wrapped)
+        6    0.000    0.000    0.008    0.001 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\base.py:913(fit_transform)
+       11    0.004    0.000    0.008    0.001 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\preprocessing\_polynomial.py:395(transform)
+        6    0.000    0.000    0.006    0.001 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\lib\_nanfunctions_impl.py:1125(nanmedian)
+     52/6    0.000    0.000    0.006    0.001 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\lib\_function_base_impl.py:3827(_ureduce)
+        6    0.000    0.000    0.005    0.001 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\lib\_nanfunctions_impl.py:1074(_nanmedian)
+        5    0.000    0.000    0.005    0.001 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\lib\_shape_base_impl.py:276(apply_along_axis)
+       17    0.000    0.000    0.004    0.000 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\sklearn\utils\validation.py:2932(validate_data)
+       45    0.000    0.000    0.004    0.000 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\lib\_nanfunctions_impl.py:1057(_nanmedian1d)
+       45    0.000    0.000    0.004    0.000 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\lib\_function_base_impl.py:3914(median)
+       45    0.000    0.000    0.004    0.000 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\lib\_function_base_impl.py:4003(_median)
+
+

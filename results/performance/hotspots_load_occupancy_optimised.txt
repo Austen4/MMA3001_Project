@@ -1,0 +1,23 @@
+         30610563 function calls (30601555 primitive calls) in 34.722 seconds
+
+   Ordered by: cumulative time
+   List reduced from 872 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.232    0.232   34.722   34.722 C:\Users\auste\OneDrive\Documents\GitHub\MMA3001_Project\building_occupancy\occupancy_data.py:45(load_occupancy_events)
+        1    0.305    0.305   14.626   14.626 C:\Users\auste\OneDrive\Documents\GitHub\MMA3001_Project\building_occupancy\occupancy_data.py:19(parse_offset_timestamps)
+        1    0.000    0.000   13.403   13.403 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\readers.py:349(read_csv)
+        1    0.000    0.000   13.403   13.403 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\readers.py:258(_read)
+        1    0.000    0.000   13.398   13.398 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\readers.py:1934(read)
+        1   10.743   10.743   13.397   13.397 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\io\parsers\c_parser_wrapper.py:226(read)
+        3    0.001    0.000   10.029    3.343 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\arrays\string_.py:464(_str_map)
+        3    1.067    0.356   10.028    3.343 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\arrays\string_.py:557(_str_map_nan_semantics)
+        1    0.000    0.000    5.642    5.642 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\strings\accessor.py:134(wrapper)
+        1    0.000    0.000    5.642    5.642 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\strings\accessor.py:1591(fullmatch)
+        1    0.000    0.000    5.641    5.641 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\strings\object_array.py:255(_str_fullmatch)
+        2    0.000    0.000    4.520    2.260 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\strings\accessor.py:2220(slice)
+        2    0.000    0.000    4.389    2.194 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\strings\object_array.py:335(_str_slice)
+  7540149    1.374    0.000    4.307    0.000 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\strings\object_array.py:267(<lambda>)
+        6    0.017    0.003    4.031    0.672 C:\Users\auste\AppData\Local\Programs\Python\Python312\Lib\site-packages\pandas\core\algorithms.py:652(factorize)
+
+

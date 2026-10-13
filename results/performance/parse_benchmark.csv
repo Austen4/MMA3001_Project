@@ -1,0 +1,10 @@
+n_rows,n_unique,method,seconds,rows_per_s,matches_reference
+10000,8696,pandas general parser (format='mixed'),0.03478500014171004,287480.2345626323,True
+10000,8696,"categorical, parse unique strings once",0.0389765000436455,256564.85289346398,True
+10000,8696,fixed-offset vectorised (current),0.013497999869287014,740850.5035441385,True
+100000,86666,pandas general parser (format='mixed'),0.36503019998781383,273949.9362062054,True
+100000,86666,"categorical, parse unique strings once",0.4800692000426352,208303.30292199322,True
+100000,86666,fixed-offset vectorised (current),0.14178900001570582,705273.328600407,True
+1000000,770094,pandas general parser (format='mixed'),6.68810289981775,149519.2306367251,True
+1000000,770094,"categorical, parse unique strings once",6.126334199914709,163229.75002146015,True
+1000000,770094,fixed-offset vectorised (current),2.010105900000781,497486.2269692416,True

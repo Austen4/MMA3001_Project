@@ -1,0 +1,12 @@
+stage,seconds,peak_rss_mb,baseline_rss_mb,rows_out,memory_measure,tracemalloc_peak_mb
+1 prepare environment data,13.157245900016278,529.703125,164.77734375,42838,"peak resident set, fresh process",
+2a load occupancy - original loader,96.49804369988851,1791.875,164.71484375,7540146,"peak resident set, fresh process",
+2a load occupancy - optimised loader,33.0909810999874,1454.3515625,164.2890625,7540146,"peak resident set, fresh process",
+2b bin occupancy (10-min),4.071376399835572,,,474330,tracemalloc peak (Python/NumPy allocations),497.47646141052246
+2b bin occupancy (30-min),4.201178299961612,,,158150,tracemalloc peak (Python/NumPy allocations),492.02445888519287
+2b bin occupancy (60-min),3.9497302998788655,,,79092,tracemalloc peak (Python/NumPy allocations),489.91464138031006
+2c building total (60-min),0.1695824998896569,,,18643,tracemalloc peak (Python/NumPy allocations),11.617879867553711
+"3 build dataset (final sensor, 60-min)",0.06521760020405054,,,2459,tracemalloc peak (Python/NumPy allocations),2.460507392883301
+6 fit final model: Ridge (environment + time),2.494080699980259,,,2459,tracemalloc peak (Python/NumPy allocations),2.2460861206054688
+6 fit final model: Polynomial ridge (degree 2),0.07964079990051687,,,2459,tracemalloc peak (Python/NumPy allocations),5.339756965637207
+predict tool: one week (940 readings),0.09203339996747673,,,168,tracemalloc peak (Python/NumPy allocations),0.39647960662841797

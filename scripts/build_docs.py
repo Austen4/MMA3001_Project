@@ -9,6 +9,7 @@ Usage (from the repository root)::
 Open ``docs/index.html`` in a browser. Rebuild after every code or docstring change;
 ``tests/test_docs.py`` fails if ``docs/`` is out of date.
 """
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -55,8 +56,17 @@ def _machine_independent(text):
     """
     for form in {ROOT.as_posix(), str(ROOT), str(ROOT).replace("\\", "\\\\")}:
         text = text.replace(form, "&lt;repo&gt;")     # escaped: these strings sit inside HTML
+    # pdoc adds a "view value" toggle only when a default value's text is long, and a path
+    # default's length depends on where the repository is checked out. Drop the toggles
+    # (values are then always shown in full) so the output does not depend on that length.
+    text = _VALUE_TOGGLE.sub("", text)
     # The class name may be split from "(" by syntax-highlighting tags, so replace the word.
     return text.replace("WindowsPath", "Path").replace("PosixPath", "Path")
+
+
+_VALUE_TOGGLE = re.compile(
+    r'<input id="[^"]*-view-value" class="view-value-toggle-state" type="checkbox"[^>]*>\s*'
+    r'<label class="view-value-button pdoc-button" for="[^"]*-view-value"></label>')
 
 
 def main(argv):

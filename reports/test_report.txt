@@ -124,4 +124,4 @@ tests/test_sensitivity.py::test_training_window_validation[1] PASSED     [ 98%]
 tests/test_sensitivity.py::test_scenario_scores_adds_cv_summary PASSED   [ 99%]
 tests/test_sensitivity.py::test_bin_occupancy_passes_hold_limits PASSED  [100%]
 
-============================ 117 passed in 12.64s =============================
+============================ 117 passed in 11.00s =============================
